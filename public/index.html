@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Kalkulator — calc.syahrul.web.id</title>
+  <meta name="description" content="Kalkulator cepat: dasar, ilmiah, riwayat. Keyboard friendly.">
+  <meta name="theme-color" content="#0b0c0f">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500&family=Outfit:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div class="page">
+    <header class="top">
+      <div>
+        <p class="kicker">calc.syahrul.web.id</p>
+        <h1>Kalkulator</h1>
+      </div>
+      <div class="toggles">
+        <button type="button" id="btn-mode" class="chip" aria-pressed="false">Ilmiah</button>
+        <button type="button" id="btn-angle" class="chip" aria-pressed="true">Deg</button>
+      </div>
+    </header>
+
+    <main class="shell">
+      <aside class="history" aria-label="Riwayat">
+        <div class="history-head">
+          <h2>Riwayat</h2>
+          <button type="button" id="btn-clear-history" class="ghost">Hapus</button>
+        </div>
+        <ol id="history-list" class="history-list"></ol>
+        <p id="history-empty" class="muted">Belum ada hitungan.</p>
+      </aside>
+
+      <section class="calc" aria-label="Kalkulator">
+        <div class="screen">
+          <div id="expr" class="expr" aria-live="polite"></div>
+          <div id="display" class="display" aria-live="polite">0</div>
+        </div>
+
+        <div id="keys" class="keys">
+          <div class="sci hidden" id="sci-keys">
+            <button type="button" data-fn="square">x²</button>
+            <button type="button" data-fn="sqrt">√</button>
+            <button type="button" data-fn="inv">1/x</button>
+            <button type="button" data-fn="pow">xʸ</button>
+            <button type="button" data-fn="sin">sin</button>
+            <button type="button" data-fn="cos">cos</button>
+            <button type="button" data-fn="tan">tan</button>
+            <button type="button" data-fn="ln">ln</button>
+            <button type="button" data-fn="log">log</button>
+            <button type="button" data-const="pi">π</button>
+            <button type="button" data-const="e">e</button>
+            <button type="button" data-fn="fact">n!</button>
+          </div>
+
+          <div class="pad">
+            <button type="button" class="fn" data-action="ac">AC</button>
+            <button type="button" class="fn" data-action="back" aria-label="Hapus">⌫</button>
+            <button type="button" class="fn" data-action="percent">%</button>
+            <button type="button" class="op" data-op="÷">÷</button>
+
+            <button type="button" data-digit="7">7</button>
+            <button type="button" data-digit="8">8</button>
+            <button type="button" data-digit="9">9</button>
+            <button type="button" class="op" data-op="×">×</button>
+
+            <button type="button" data-digit="4">4</button>
+            <button type="button" data-digit="5">5</button>
+            <button type="button" data-digit="6">6</button>
+            <button type="button" class="op" data-op="-">−</button>
+
+            <button type="button" data-digit="1">1</button>
+            <button type="button" data-digit="2">2</button>
+            <button type="button" data-digit="3">3</button>
+            <button type="button" class="op" data-op="+">+</button>
+
+            <button type="button" class="fn" data-action="neg">±</button>
+            <button type="button" data-digit="0">0</button>
+            <button type="button" data-digit=",">,</button>
+            <button type="button" class="eq" data-action="eq">=</button>
+          </div>
+        </div>
+        <p class="hint">Keyboard: angka, + − * /, Enter, Backspace, Esc</p>
+      </section>
+    </main>
+  </div>
+  <script src="/app.js"></script>
+</body>
+</html>
