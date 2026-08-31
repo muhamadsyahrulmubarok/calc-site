@@ -41,7 +41,7 @@ function round(n) {
 }
 
 function parseDisplay(str) {
-  const normalized = String(str).replace(/\\./g, "").replace(",", ".");
+  const normalized = String(str).replace(/\./g, "").replace(",", ".");
   const n = Number(normalized);
   return Number.isFinite(n) ? n : NaN;
 }
@@ -54,7 +54,7 @@ function formatNumber(n) {
   }
   const rounded = round(n);
   const [intRaw, frac = ""] = String(Math.abs(rounded)).split(".");
-  const int = intRaw.replace(/\\B(?=(\d{3})+(?!\d))/g, ".");
+  const int = intRaw.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
   const sign = rounded < 0 ? "−" : "";
   return frac ? `${sign}${int},${frac}` : `${sign}${int}`;
 }
@@ -218,7 +218,7 @@ function percent() {
 function negate() {
   if (state.error) return;
   if (state.current.startsWith("-") || state.current.startsWith("−")) {
-    state.current = state.current.replace(/^[-\u2212]/, "");
+    state.current = state.current.replace(/^[-−]/, "");
   } else if (state.current !== "0") {
     state.current = `-${state.current}`;
   }
