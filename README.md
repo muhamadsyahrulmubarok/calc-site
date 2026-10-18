@@ -21,4 +21,6 @@ Static HTML/CSS/JS. Nginx serve dari `public/`.
 cd /home/calc-site && docker compose up -d --build
 ```
 
-Update konten: edit `public/`, lalu `docker compose up -d --build`.
+Update konten: edit `public/`, commit + push ke `main` (Coolify auto-deploy), atau `docker compose up -d --build` untuk lokal.
+
+Tab **Futures**: Position, PnL, TP/SL, Liquidation, Fee/Funding (USDT-M linear).

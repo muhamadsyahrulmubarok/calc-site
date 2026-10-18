@@ -324,7 +324,14 @@ el.clearHistory.addEventListener("click", () => {
 });
 
 window.addEventListener("keydown", (ev) => {
-  if (ev.target instanceof HTMLInputElement || ev.target instanceof HTMLTextAreaElement) return;
+  if (document.getElementById("panel-calc")?.hidden) return;
+  if (
+    ev.target instanceof HTMLInputElement ||
+    ev.target instanceof HTMLTextAreaElement ||
+    ev.target instanceof HTMLSelectElement
+  ) {
+    return;
+  }
   const k = ev.key;
   if (k >= "0" && k <= "9") {
     inputDigit(k);

@@ -4,13 +4,13 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Kalkulator — calc.syahrul.web.id</title>
-  <meta name="description" content="Kalkulator cepat: dasar, ilmiah, riwayat. Keyboard friendly.">
+  <meta name="description" content="Kalkulator, futures trading, PPh, diskon, dan konversi satuan.">
   <meta name="theme-color" content="#0b0c0f">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500&family=Outfit:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/styles.css?v=4">
 </head>
 <body>
   <div class="page">
@@ -19,13 +19,21 @@
         <p class="kicker">calc.syahrul.web.id</p>
         <h1>Kalkulator</h1>
       </div>
-      <div class="toggles">
+      <div class="toggles" id="calc-toggles">
         <button type="button" id="btn-mode" class="chip" aria-pressed="false">Ilmiah</button>
         <button type="button" id="btn-angle" class="chip" aria-pressed="true">Deg</button>
       </div>
     </header>
 
-    <main class="shell">
+    <nav class="tabs" role="tablist" aria-label="Mode">
+      <button type="button" role="tab" data-tab="calc" aria-selected="true">Dasar</button>
+      <button type="button" role="tab" data-tab="futures" aria-selected="false">Futures</button>
+      <button type="button" role="tab" data-tab="pph" aria-selected="false">PPh</button>
+      <button type="button" role="tab" data-tab="diskon" aria-selected="false">Diskon</button>
+      <button type="button" role="tab" data-tab="satuan" aria-selected="false">Satuan</button>
+    </nav>
+
+    <main class="shell" id="panel-calc">
       <aside class="history" aria-label="Riwayat">
         <div class="history-head">
           <h2>Riwayat</h2>
@@ -87,7 +95,339 @@
         <p class="hint">Keyboard: angka, + − * /, Enter, Backspace, Esc</p>
       </section>
     </main>
+
+    <section class="tool hidden" id="panel-futures" hidden>
+      <div class="tool-card">
+        <h2>Futures (USDT-M)</h2>
+        <p class="muted">Perkiraan linear perp. Bukan financial advice — cek aturan exchange kamu.</p>
+
+        <div class="submodes" id="fut-modes" role="tablist" aria-label="Mode futures">
+          <button type="button" class="chip" data-fut="position" aria-pressed="true">Position</button>
+          <button type="button" class="chip" data-fut="pnl" aria-pressed="false">PnL</button>
+          <button type="button" class="chip" data-fut="tpsl" aria-pressed="false">TP / SL</button>
+          <button type="button" class="chip" data-fut="liq" aria-pressed="false">Liquidation</button>
+          <button type="button" class="chip" data-fut="fee" aria-pressed="false">Fee / Funding</button>
+        </div>
+
+        <div class="row2">
+          <label class="field">
+            <span>Side</span>
+            <select id="fut-side">
+              <option value="long">Long</option>
+              <option value="short">Short</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>Margin mode</span>
+            <select id="fut-margin-mode">
+              <option value="isolated">Isolated</option>
+              <option value="cross">Cross</option>
+            </select>
+          </label>
+        </div>
+        <div class="row2">
+          <label class="field">
+            <span>Leverage</span>
+            <select id="fut-leverage">
+              <option value="1">1×</option>
+              <option value="2">2×</option>
+              <option value="3">3×</option>
+              <option value="5">5×</option>
+              <option value="10" selected>10×</option>
+              <option value="20">20×</option>
+              <option value="25">25×</option>
+              <option value="50">50×</option>
+              <option value="75">75×</option>
+              <option value="100">100×</option>
+              <option value="125">125×</option>
+              <option value="custom">Custom</option>
+            </select>
+          </label>
+          <label class="field" id="fut-lev-custom-wrap" hidden>
+            <span>Leverage custom</span>
+            <input id="fut-lev-custom" inputmode="decimal" placeholder="15">
+          </label>
+        </div>
+
+        <div id="fut-box-position">
+          <div class="row2">
+            <label class="field">
+              <span>Saldo akun (USDT)</span>
+              <input id="fut-balance" inputmode="decimal" placeholder="1000" value="1000">
+            </label>
+            <label class="field">
+              <span>Risk per trade (%)</span>
+              <input id="fut-risk-pct" inputmode="decimal" placeholder="1" value="1">
+            </label>
+          </div>
+          <div class="row2">
+            <label class="field">
+              <span>Entry</span>
+              <input id="fut-pos-entry" inputmode="decimal" placeholder="65000">
+            </label>
+            <label class="field">
+              <span>Stop loss</span>
+              <input id="fut-pos-stop" inputmode="decimal" placeholder="64000">
+            </label>
+          </div>
+        </div>
+
+        <div id="fut-box-pnl" hidden>
+          <div class="row2">
+            <label class="field">
+              <span>Entry</span>
+              <input id="fut-pnl-entry" inputmode="decimal" placeholder="65000">
+            </label>
+            <label class="field">
+              <span>Exit / mark</span>
+              <input id="fut-pnl-exit" inputmode="decimal" placeholder="66000">
+            </label>
+          </div>
+          <div class="row2">
+            <label class="field">
+              <span>Size (coin)</span>
+              <input id="fut-pnl-size" inputmode="decimal" placeholder="0.1">
+            </label>
+            <label class="field">
+              <span>Atau notional (USDT)</span>
+              <input id="fut-pnl-notional" inputmode="decimal" placeholder="kosongkan jika pakai size">
+            </label>
+          </div>
+        </div>
+
+        <div id="fut-box-tpsl" hidden>
+          <div class="row2">
+            <label class="field">
+              <span>Entry</span>
+              <input id="fut-tp-entry" inputmode="decimal" placeholder="65000">
+            </label>
+            <label class="field">
+              <span>Size (coin)</span>
+              <input id="fut-tp-size" inputmode="decimal" placeholder="0.1">
+            </label>
+          </div>
+          <div class="row2">
+            <label class="field">
+              <span>Risk $ (untuk SL)</span>
+              <input id="fut-tp-risk" inputmode="decimal" placeholder="10">
+            </label>
+            <label class="field">
+              <span>Reward : Risk</span>
+              <input id="fut-tp-rr" inputmode="decimal" placeholder="2" value="2">
+            </label>
+          </div>
+          <label class="field">
+            <span>Atau target profit $ (opsional, override R:R)</span>
+            <input id="fut-tp-target" inputmode="decimal" placeholder="kosongkan = pakai R:R">
+          </label>
+        </div>
+
+        <div id="fut-box-liq" hidden>
+          <div class="row2">
+            <label class="field">
+              <span>Entry</span>
+              <input id="fut-liq-entry" inputmode="decimal" placeholder="65000">
+            </label>
+            <label class="field">
+              <span>Maintenance margin rate (%)</span>
+              <input id="fut-mmr" inputmode="decimal" placeholder="0.5" value="0.5">
+            </label>
+          </div>
+          <p class="muted tiny">Approx isolated. Cross bergantung saldo &amp; posisi lain — hasil hanya indikasi.</p>
+        </div>
+
+        <div id="fut-box-fee" hidden>
+          <div class="row2">
+            <label class="field">
+              <span>Notional (USDT)</span>
+              <input id="fut-fee-notional" inputmode="decimal" placeholder="1000">
+            </label>
+            <label class="field">
+              <span>Fee open + close (%)</span>
+              <input id="fut-fee-pct" inputmode="decimal" placeholder="0.1" value="0.1">
+            </label>
+          </div>
+          <div class="row2">
+            <label class="field">
+              <span>Funding rate per periode (%)</span>
+              <input id="fut-funding-rate" inputmode="decimal" placeholder="0.01" value="0.01">
+            </label>
+            <label class="field">
+              <span>Jumlah periode funding</span>
+              <input id="fut-funding-n" inputmode="decimal" placeholder="3" value="3">
+            </label>
+          </div>
+        </div>
+
+        <dl class="result" id="fut-result"></dl>
+      </div>
+    </section>
+
+    <section class="tool hidden" id="panel-pph" hidden>
+      <div class="tool-card">
+        <h2>Pajak penghasilan</h2>
+        <p class="muted">Perkiraan. Bukan pengganti software e-Bupot / TER resmi.</p>
+
+        <label class="field">
+          <span>Jenis</span>
+          <select id="pph-jenis">
+            <option value="pph21">PPh 21 — Pasal 17 (progresif)</option>
+            <option value="pph23">PPh 23 — potongan jasa / dividen</option>
+            <option value="pph42">PPh Final 4(2)</option>
+          </select>
+        </label>
+
+        <div id="pph21-box">
+          <div class="row2">
+            <label class="field">
+              <span>Penghasilan</span>
+              <input id="pph21-amount" inputmode="decimal" placeholder="10.000.000">
+            </label>
+            <label class="field">
+              <span>Periode</span>
+              <select id="pph21-period">
+                <option value="month">Bulanan</option>
+                <option value="year">Tahunan</option>
+              </select>
+            </label>
+          </div>
+          <div class="row2">
+            <label class="field">
+              <span>Status PTKP</span>
+              <select id="pph21-status">
+                <option value="TK/0">TK/0 — tidak kawin, 0 tanggungan</option>
+                <option value="TK/1">TK/1</option>
+                <option value="TK/2">TK/2</option>
+                <option value="TK/3">TK/3</option>
+                <option value="K/0">K/0 — kawin, 0 tanggungan</option>
+                <option value="K/1" selected>K/1</option>
+                <option value="K/2">K/2</option>
+                <option value="K/3">K/3</option>
+              </select>
+            </label>
+            <label class="check">
+              <input type="checkbox" id="pph21-jabatan" checked>
+              <span>Biaya jabatan 5% (maks. Rp 6 juta/tahun)</span>
+            </label>
+          </div>
+        </div>
+
+        <div id="pph23-box" hidden>
+          <div class="row2">
+            <label class="field">
+              <span>Nominal</span>
+              <input id="pph23-amount" inputmode="decimal" placeholder="5.000.000">
+            </label>
+            <label class="field">
+              <span>Tarif</span>
+              <select id="pph23-rate">
+                <option value="0.02">2% — jasa (WP dalam negeri)</option>
+                <option value="0.15">15% — dividen / bunga / royalti</option>
+                <option value="custom">Tarif custom</option>
+              </select>
+            </label>
+          </div>
+          <div class="row2">
+            <label class="field" id="pph23-custom-wrap" hidden>
+              <span>Tarif custom (%)</span>
+              <input id="pph23-custom" inputmode="decimal" placeholder="2">
+            </label>
+            <label class="field">
+              <span>Nominal ini adalah</span>
+              <select id="pph23-basis">
+                <option value="dpp">DPP (sebelum pajak) — dipotong</option>
+                <option value="nett">Nett yang harus diterima — gross-up</option>
+              </select>
+            </label>
+          </div>
+        </div>
+
+        <div id="pph42-box" hidden>
+          <div class="row2">
+            <label class="field">
+              <span>Nominal DPP</span>
+              <input id="pph42-amount" inputmode="decimal" placeholder="20.000.000">
+            </label>
+            <label class="field">
+              <span>Tarif final</span>
+              <select id="pph42-rate">
+                <option value="0.10">10% — sewa tanah/bangunan</option>
+                <option value="0.005">0,5% — UMKM (PP 55/2022)</option>
+                <option value="0.20">20% — bunga deposito / diskonto SBI</option>
+                <option value="custom">Tarif custom</option>
+              </select>
+            </label>
+          </div>
+          <label class="field" id="pph42-custom-wrap" hidden>
+            <span>Tarif custom (%)</span>
+            <input id="pph42-custom" inputmode="decimal" placeholder="10">
+          </label>
+        </div>
+
+        <dl class="result" id="pph-result"></dl>
+      </div>
+    </section>
+
+    <section class="tool hidden" id="panel-diskon" hidden>
+      <div class="tool-card">
+        <h2>Diskon</h2>
+        <p class="muted">Hitung harga akhir, atau cari persen diskon dari dua harga.</p>
+
+        <div class="row2">
+          <label class="field">
+            <span>Harga asli</span>
+            <input id="disc-price" inputmode="decimal" placeholder="150.000">
+          </label>
+          <label class="field">
+            <span>Diskon (%)</span>
+            <input id="disc-pct" inputmode="decimal" placeholder="20">
+          </label>
+        </div>
+        <div class="row2">
+          <label class="field">
+            <span>Diskon tambahan (%)</span>
+            <input id="disc-pct2" inputmode="decimal" placeholder="0">
+          </label>
+          <label class="field">
+            <span>Potongan nominal</span>
+            <input id="disc-nominal" inputmode="decimal" placeholder="0">
+          </label>
+        </div>
+        <label class="field">
+          <span>Harga akhir (opsional — untuk cari % diskon)</span>
+          <input id="disc-final" inputmode="decimal" placeholder="kosongkan jika tidak perlu">
+        </label>
+        <dl class="result" id="disc-result"></dl>
+      </div>
+    </section>
+
+    <section class="tool hidden" id="panel-satuan" hidden>
+      <div class="tool-card">
+        <h2>Konversi satuan</h2>
+        <label class="field">
+          <span>Kategori</span>
+          <select id="unit-cat"></select>
+        </label>
+        <div class="row2">
+          <label class="field">
+            <span>Dari</span>
+            <select id="unit-from"></select>
+          </label>
+          <label class="field">
+            <span>Ke</span>
+            <select id="unit-to"></select>
+          </label>
+        </div>
+        <label class="field">
+          <span>Nilai</span>
+          <input id="unit-value" inputmode="decimal" placeholder="1" value="1">
+        </label>
+        <dl class="result" id="unit-result"></dl>
+      </div>
+    </section>
   </div>
-  <script src="/app.js"></script>
+  <script src="/app.js?v=4"></script>
+  <script src="/tools.js?v=4"></script>
+  <script src="/futures.js?v=4"></script>
 </body>
 </html>
