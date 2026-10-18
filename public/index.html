@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500&family=Outfit:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/styles.css?v=4">
+  <link rel="stylesheet" href="/styles.css?v=5">
 </head>
 <body>
   <div class="page">
@@ -99,7 +99,37 @@
     <section class="tool hidden" id="panel-futures" hidden>
       <div class="tool-card">
         <h2>Futures (USDT-M)</h2>
-        <p class="muted">Perkiraan linear perp. Bukan financial advice — cek aturan exchange kamu.</p>
+        <p class="muted">Perkiraan linear perp · harga live dari <strong>OKX</strong>. Bukan financial advice.</p>
+
+        <div class="fut-market">
+          <div class="row2">
+            <label class="field">
+              <span>Coin (OKX SWAP)</span>
+              <select id="fut-coin"></select>
+            </label>
+            <label class="field" id="fut-coin-custom-wrap" hidden>
+              <span>InstId custom</span>
+              <input id="fut-coin-custom" placeholder="PEPE-USDT-SWAP" autocomplete="off">
+            </label>
+          </div>
+          <div class="price-bar">
+            <div class="price-meta">
+              <span class="price-label">Last</span>
+              <strong id="fut-price-last">—</strong>
+              <span class="price-label">Mark</span>
+              <strong id="fut-price-mark">—</strong>
+              <span id="fut-price-chg" class="price-chg"></span>
+            </div>
+            <div class="price-actions">
+              <label class="check tight">
+                <input type="checkbox" id="fut-autofill" checked>
+                <span>Isi entry otomatis</span>
+              </label>
+              <button type="button" class="chip" id="fut-refresh">Ambil harga</button>
+            </div>
+          </div>
+          <p id="fut-price-status" class="muted tiny" aria-live="polite"></p>
+        </div>
 
         <div class="submodes" id="fut-modes" role="tablist" aria-label="Mode futures">
           <button type="button" class="chip" data-fut="position" aria-pressed="true">Position</button>
@@ -426,8 +456,8 @@
       </div>
     </section>
   </div>
-  <script src="/app.js?v=4"></script>
-  <script src="/tools.js?v=4"></script>
-  <script src="/futures.js?v=4"></script>
+  <script src="/app.js?v=5"></script>
+  <script src="/tools.js?v=5"></script>
+  <script src="/futures.js?v=5"></script>
 </body>
 </html>

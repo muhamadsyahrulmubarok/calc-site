@@ -1,9 +1,188 @@
-/* Futures calculator — USDT-M linear (calc.syahrul.web.id) */
+/* Futures calculator — USDT-M linear + OKX live price (calc.syahrul.web.id) */
 
 const FUT_MODES = ["position", "pnl", "tpsl", "liq", "fee"];
+const OKX_BASE = "/okx";
+const POPULAR_SWAPS = [
+  "BTC-USDT-SWAP",
+  "ETH-USDT-SWAP",
+  "SOL-USDT-SWAP",
+  "XRP-USDT-SWAP",
+  "DOGE-USDT-SWAP",
+  "BNB-USDT-SWAP",
+  "ADA-USDT-SWAP",
+  "AVAX-USDT-SWAP",
+  "LINK-USDT-SWAP",
+  "SUI-USDT-SWAP",
+  "NEAR-USDT-SWAP",
+  "DOT-USDT-SWAP",
+  "PEPE-USDT-SWAP",
+  "WIF-USDT-SWAP",
+  "1000PEPE-USDT-SWAP",
+];
+
+const marketState = {
+  instruments: [],
+  last: null,
+  mark: null,
+  open24h: null,
+  funding: null,
+  fetching: false,
+};
 
 function futNum(id) {
   return parseId(document.getElementById(id).value);
+}
+
+function coinLabel(instId) {
+  const base = String(instId).replace(/-USDT-SWAP$/, "");
+  return `${base} · ${instId}`;
+}
+
+function fillCoinSelect(extraIds = []) {
+  const sel = document.getElementById("fut-coin");
+  if (!sel) return;
+  const prev = sel.value;
+  const ids = [...new Set([...POPULAR_SWAPS, ...extraIds, "CUSTOM"])];
+  sel.innerHTML = "";
+  for (const id of ids) {
+    const opt = document.createElement("option");
+    opt.value = id;
+    opt.textContent = id === "CUSTOM" ? "Custom instId…" : coinLabel(id);
+    sel.appendChild(opt);
+  }
+  if (ids.includes(prev)) sel.value = prev;
+  else sel.value = "BTC-USDT-SWAP";
+  syncCoinCustom();
+}
+
+function syncCoinCustom() {
+  const custom = document.getElementById("fut-coin").value === "CUSTOM";
+  document.getElementById("fut-coin-custom-wrap").hidden = !custom;
+}
+
+function currentInstId() {
+  const sel = document.getElementById("fut-coin").value;
+  if (sel === "CUSTOM") {
+    const raw = document.getElementById("fut-coin-custom").value.trim().toUpperCase();
+    if (!raw) return null;
+    return raw.endsWith("-SWAP") ? raw : `${raw.replace(/-USDT$/, "")}-USDT-SWAP`.replace(/--+/g, "-");
+  }
+  return sel;
+}
+
+function formatPx(n) {
+  if (!Number.isFinite(n)) return "—";
+  const abs = Math.abs(n);
+  const digits = abs >= 1000 ? 2 : abs >= 1 ? 4 : abs >= 0.01 ? 6 : 8;
+  return formatId(n, digits);
+}
+
+function setPriceStatus(msg) {
+  const el = document.getElementById("fut-price-status");
+  if (el) el.textContent = msg || "";
+}
+
+function applyPriceToEntries(price, { force = false } = {}) {
+  if (!Number.isFinite(price) || price <= 0) return;
+  const autofill = document.getElementById("fut-autofill")?.checked;
+  if (!autofill && !force) return;
+  const targets = ["fut-pos-entry", "fut-pnl-entry", "fut-tp-entry", "fut-liq-entry"];
+  const display = formatId(price, price >= 1 ? 2 : 6);
+  for (const id of targets) {
+    const input = document.getElementById(id);
+    if (input) input.value = display;
+  }
+  // Also set fee notional hint from 1 coin * price if empty
+  const feeNotional = document.getElementById("fut-fee-notional");
+  if (feeNotional && !feeNotional.value.trim()) {
+    feeNotional.value = formatId(price, 2);
+  }
+  renderFutures();
+}
+
+async function okxGet(path) {
+  const res = await fetch(`${OKX_BASE}${path}`, { headers: { Accept: "application/json" } });
+  if (!res.ok) throw new Error(`OKX HTTP ${res.status}`);
+  const json = await res.json();
+  if (String(json.code) !== "0") throw new Error(json.msg || "OKX error");
+  return json.data || [];
+}
+
+async function loadOkxInstruments() {
+  try {
+    const rows = await okxGet("/public/instruments?instType=SWAP");
+    const usdt = rows
+      .filter((r) => String(r.instId || "").endsWith("-USDT-SWAP") && r.state === "live")
+      .map((r) => r.instId)
+      .sort((a, b) => a.localeCompare(b));
+    marketState.instruments = usdt;
+    // Merge popular + a few more from live list into select (keep select manageable)
+    const top = usdt.filter((id) => POPULAR_SWAPS.includes(id));
+    const restSample = usdt.filter((id) => !POPULAR_SWAPS.includes(id)).slice(0, 40);
+    fillCoinSelect([...top, ...restSample]);
+  } catch (err) {
+    fillCoinSelect();
+    setPriceStatus(`Daftar coin gagal: ${err.message}. Pakai daftar default.`);
+  }
+}
+
+async function fetchOkxPrice({ silent = false } = {}) {
+  const instId = currentInstId();
+  if (!instId) {
+    setPriceStatus("Isi instId custom dulu.");
+    return;
+  }
+  if (marketState.fetching) return;
+  marketState.fetching = true;
+  if (!silent) setPriceStatus(`Mengambil ${instId} dari OKX…`);
+  try {
+    const [tickerRows, markRows, fundRows] = await Promise.all([
+      okxGet(`/market/ticker?instId=${encodeURIComponent(instId)}`),
+      okxGet(`/public/mark-price?instId=${encodeURIComponent(instId)}`),
+      okxGet(`/public/funding-rate?instId=${encodeURIComponent(instId)}`),
+    ]);
+    const t = tickerRows[0] || {};
+    const m = markRows[0] || {};
+    const f = fundRows[0] || {};
+    const last = Number(t.last);
+    const mark = Number(m.markPx || t.last);
+    const open24h = Number(t.open24h);
+    const funding = Number(f.fundingRate);
+
+    marketState.last = last;
+    marketState.mark = mark;
+    marketState.open24h = open24h;
+    marketState.funding = funding;
+
+    document.getElementById("fut-price-last").textContent = formatPx(last);
+    document.getElementById("fut-price-mark").textContent = formatPx(mark);
+
+    const chgEl = document.getElementById("fut-price-chg");
+    if (Number.isFinite(last) && Number.isFinite(open24h) && open24h !== 0) {
+      const pct = ((last - open24h) / open24h) * 100;
+      chgEl.textContent = `${pct >= 0 ? "+" : ""}${formatId(pct, 2)}% 24h`;
+      chgEl.classList.toggle("up", pct >= 0);
+      chgEl.classList.toggle("down", pct < 0);
+    } else {
+      chgEl.textContent = "";
+    }
+
+    // Prefill funding % into fee tab when available (OKX rate is decimal, e.g. 0.0001 = 0.01%)
+    if (Number.isFinite(funding)) {
+      const fundInput = document.getElementById("fut-funding-rate");
+      if (fundInput && document.getElementById("fut-autofill")?.checked) {
+        fundInput.value = formatId(funding * 100, 4);
+      }
+    }
+
+    applyPriceToEntries(Number.isFinite(mark) ? mark : last);
+    const ts = t.ts ? new Date(Number(t.ts)).toLocaleTimeString("id-ID") : "—";
+    setPriceStatus(`${instId} · update ${ts}${Number.isFinite(funding) ? ` · funding ${(funding * 100).toFixed(4)}%` : ""}`);
+  } catch (err) {
+    setPriceStatus(`Gagal fetch OKX: ${err.message}`);
+  } finally {
+    marketState.fetching = false;
+  }
 }
 
 function futLeverage() {
@@ -233,18 +412,31 @@ function initFutures() {
   const panel = document.getElementById("panel-futures");
   if (!panel) return;
 
+  fillCoinSelect();
+
   document.getElementById("fut-modes").addEventListener("click", (ev) => {
     const btn = ev.target.closest("[data-fut]");
     if (btn) setFutMode(btn.dataset.fut);
   });
 
-  panel.addEventListener("input", renderFutures);
+  document.getElementById("fut-coin").addEventListener("change", () => {
+    syncCoinCustom();
+    fetchOkxPrice();
+  });
+  document.getElementById("fut-coin-custom").addEventListener("change", () => fetchOkxPrice());
+  document.getElementById("fut-refresh").addEventListener("click", () => fetchOkxPrice());
+
+  panel.addEventListener("input", (ev) => {
+    if (ev.target?.id === "fut-coin-custom") return;
+    renderFutures();
+  });
   panel.addEventListener("change", () => {
     syncLevCustom();
     renderFutures();
   });
 
   setFutMode("position");
+  loadOkxInstruments().then(() => fetchOkxPrice({ silent: true }));
 }
 
 initFutures();
