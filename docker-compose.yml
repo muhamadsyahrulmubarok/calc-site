@@ -1,0 +1,30 @@
+# Native Coolify/Traefik deploy for calc.syahrul.web.id (VPN-only)
+name: calc-site
+
+services:
+  calc:
+    build: .
+    container_name: calc-site
+    restart: unless-stopped
+    networks:
+      - coolify
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=coolify
+      - traefik.http.routers.calc-http.rule=Host(`calc.syahrul.web.id`)
+      - traefik.http.routers.calc-http.entrypoints=http
+      - traefik.http.routers.calc-http.middlewares=https-redirect@file
+      - traefik.http.routers.calc.rule=Host(`calc.syahrul.web.id`)
+      - traefik.http.routers.calc.entrypoints=https
+      - traefik.http.routers.calc.tls=true
+      - traefik.http.routers.calc.tls.certresolver=letsencrypt
+      - traefik.http.routers.calc.middlewares=vpn-only@file
+      - traefik.http.routers.calc.priority=100
+      - traefik.http.routers.calc-http.priority=100
+      - traefik.http.services.calc.loadbalancer.server.port=80
+      - coolify.managed=false
+      - coolify.name=calc-site
+
+networks:
+  coolify:
+    external: true

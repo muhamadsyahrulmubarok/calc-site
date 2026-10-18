@@ -8,11 +8,17 @@ Static HTML/CSS/JS. Nginx serve dari `public/`.
 
 - Operasi dasar: tambah, kurang, kali, bagi, persen
 - Mode ilmiah: x², akar, 1/x, xʸ, sin/cos/tan, ln, log, π, e, n!
-- Deg / Rad
-- Riwayat di browser (localStorage)
-- Keyboard: angka, `+ - * /`, Enter, Backspace, Esc
-- Format angka Indonesia (`1.234,56`)
+- **PPh 21** (Pasal 17 + PTKP), **PPh 23** (potong / gross-up), **PPh Final 4(2)**
+- **Diskon** berlapis + cari persen dari dua harga
+- **Konversi satuan**: panjang, berat, volume, luas, data, suhu
+- Deg / Rad, riwayat, format angka Indonesia
 
 ## Deploy
 
-File live ada di `/home/calc-site/public` di VPS. Nginx: `deploy/nginx.conf` → `calc.syahrul.web.id`.
+**Live (native Traefik):** `docker compose` di folder ini → container `calc-site` di network `coolify`, domain `calc.syahrul.web.id` (VPN-only via middleware `vpn-only@file`).
+
+```bash
+cd /home/calc-site && docker compose up -d --build
+```
+
+Update konten: edit `public/`, lalu `docker compose up -d --build`.
